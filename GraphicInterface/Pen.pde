@@ -1,57 +1,38 @@
-// for creating the cursor drawing functionality. It will be used to draw the cursor on the canvas and to keep track of the cursor's position and state
-// for example whether it's currently drawing or not).
+class Pen {
+  PVector position;
+  boolean isDrawing;
+  int radius;
+  boolean isEraser;
 
-class Pen{
-    private PVector position;
-    private boolean isDrawing;
-    private PGraphics pg;
-    private boolean isEraser;
-    private int radius;
+  Pen() {
+    position = new PVector(0, 0);
+    isDrawing = false;
+    isEraser = false;
+    radius = 15;
+  }
 
-    void Pen(){
-        position = new PVector(0, 0);
-        isDrawing = false;
-        isEraser = false;
-        radius = 10;
-    }
+  void updatePosition(float x, float y) {
+    position.set(x, y);
+  }
 
-    void updatePosition(float x, float y){
-        position.set(x, y);
-    }
+  void startDrawing() {
+    isDrawing = true;
+  }
 
-    void startDrawing(){
-        isDrawing = true;
-    }
+  void stopDrawing() {
+    isDrawing = false;
+  }
 
-    void stopDrawing(){
-        isDrawing = false;
-    }
+  void setEraser(boolean val) {
+    isEraser = val;
+  }
 
-    void draw(PGraphics pg){
-        if(isDrawing){
-            pg.ellipse(position.x, position.y, radius, radius); // draws a circle
-        }
-    }
-
-    void isEraser(boolean eraser){
-        isEraser = eraser;
-        if (isEraser) {
-            pg.erase(); // switch to erase mode
-        } else {
-            pg.noErase(); // switch back to normal drawing mode
-        }
-    }
-
-    void erase(PGraphics pg){
-        if(isEraser){
-            pg.erase(); 
-            pg.ellipse(position.x, position.y, radius, radius); // erase a circle
-            pg.noErase();
-        }
-    }
-    
-    void noErase(PGraphics pg){
-        pg.noErase();
-    }
-
+  void drawCursor(PGraphics pg) {
+    pg.pushStyle();
+    pg.noFill();
+    pg.stroke(isEraser ? 140 : 0);
+    pg.strokeWeight(2);
+    pg.circle(position.x, position.y, radius * 2);
+    pg.popStyle();
+  }
 }

@@ -1,23 +1,35 @@
-import Pen;
+class Canvas {
+  PGraphics pg;
 
-class Canvas{
-    PImage canvas;
-    PVector dimensions;
-    Pen pen;
+  Canvas(int w, int h) {
+    pg = createGraphics(w, h);
+    clear();
+  }
 
-    Canvas(int w, int h){
-        canvas = createImage(w,h,RGB);
-        
-        dimensions = new PVector(w,h);
+  void display() {
+    image(pg, 0, 0);
+  }
+
+  void edit(Pen pen) {
+    if (!pen.isDrawing) {
+      return;
     }
 
-    void edit(Pen pen){
-        int x = mouseX;
-        int y = mouseY;
-        if (pen.isDrawing) {
-            r = pen.radius;
-            
-        }
+    pg.beginDraw();
+    pg.noStroke();
+    pg.fill(pen.isEraser ? 255 : 0);
+    pg.circle(pen.position.x, pen.position.y, pen.radius * 2);
+    pg.endDraw();
+  }
 
-    }
+  int[] getPixels() {
+    pg.loadPixels();
+    return pg.pixels;
+  }
+
+  void clear() {
+    pg.beginDraw();
+    pg.background(255);
+    pg.endDraw();
+  }
 }
