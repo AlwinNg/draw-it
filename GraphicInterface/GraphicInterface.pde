@@ -29,12 +29,14 @@ void mouseDragged() {
 
 void keyPressed() {
   if (key == 'e' || key == 'E') {
-    pen.setEraser(!pen.isEraser);
+    pen.toggleEraser();
   } else if (key == 'c' || key == 'C') {
     canvas.clear();
   } else if (key == '[') {
-    pen.radius = max(2, pen.radius - 2);
+    pen.changeRadius(-2);
   } else if (key == ']') {
-    pen.radius = min(60, pen.radius + 2);
+    pen.changeRadius(2);
+  } else if (key == '0') {
+    pen.resetRadius();
   }
 }

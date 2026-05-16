@@ -17,8 +17,8 @@ class Canvas {
 
     pg.beginDraw();
     pg.noStroke();
-    pg.fill(pen.isEraser ? 255 : 0);
-    pg.circle(pen.position.x, pen.position.y, pen.radius * 2);
+    pg.fill(pen.getPaintColor());
+    pg.circle(pen.position.x, pen.position.y, pen.getDiameter());
     pg.endDraw();
   }
 
