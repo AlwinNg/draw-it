@@ -2,12 +2,13 @@ Canvas canvas;
 Pen pen;
 
 void setup() {
-  size(600, 600);
-  canvas = new Canvas(width, height);
+  size(800, 600);
+  canvas = new Canvas(700, 500,50,50);
   pen = new Pen();
 }
 
 void draw() {
+  frameRate(120);
   canvas.display();
   canvas.edit(pen);
   pen.updatePosition(mouseX, mouseY);
