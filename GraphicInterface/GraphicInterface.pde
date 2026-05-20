@@ -1,6 +1,7 @@
 Canvas canvas;
 Pen pen;
-ArrayList<String> items;
+Button b;
+ArrayList<Button> buttons; //Maybe use a hashmap instead
 
 void setup() {
   frameRate(1000);
@@ -8,7 +9,7 @@ void setup() {
   background(100,100,100);
   canvas = new Canvas(700, 500,50,50);
   pen = new Pen();
-  items = new ArrayList<>();
+  b = new Button(800,100,100,100,color(0),"hi",850,150);
 }
 
 void draw() {
@@ -19,11 +20,16 @@ void draw() {
   if(mouseX >= canvas.location.x && mouseX < canvas.location.x + canvas.dimensions.x && mouseY >= canvas.location.y && mouseY < canvas.location.y + canvas.dimensions.y){
     pen.drawCursor(g);
   }
+  b.display();
+  buttons.add(b);
 }
 
 void mousePressed() {
   pen.updatePosition(mouseX, mouseY);
   pen.startDrawing();
+  for(Button a : buttons){
+    a.press();
+  }
 }
 
 void mouseReleased() {
