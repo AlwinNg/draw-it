@@ -10,6 +10,7 @@ class Game{
         newItems();
         items = new ArrayList<>();
         loadItems();
+        itemChoices = new ArrayList<>();
     }
 
     void loadItems(){

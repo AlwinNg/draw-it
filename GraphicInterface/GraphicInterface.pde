@@ -10,6 +10,7 @@ void setup() {
   canvas = new Canvas(700, 500,50,50);
   pen = new Pen();
   b = new Button(800,100,100,100,color(0),"hi",850,150);
+  buttons = new ArrayList<>();
 }
 
 void draw() {
@@ -27,9 +28,6 @@ void draw() {
 void mousePressed() {
   pen.updatePosition(mouseX, mouseY);
   pen.startDrawing();
-  for(Button a : buttons){
-    a.press();
-  }
 }
 
 void mouseReleased() {
