@@ -1,4 +1,7 @@
 class Game{
+    // don't create a new items arraylist for every game bruh
+    // create the list once in graphic interface maybe
+
     float score;
     ArrayList<String> items;
     ArrayList<String> itemChoices;
@@ -7,27 +10,21 @@ class Game{
 
     Game(){
         score = 0;
-        newItems();
         items = new ArrayList<>();
         loadItems();
         itemChoices = new ArrayList<>();
+        newItems();
     }
 
     void loadItems(){
         // Put all possible items in the list from a file
     }
 
-    void newItems(){
+    ArrayList<String> newItems(){
         itemChoices = new ArrayList<>();
         for(int i = 0; i < numChoices; i++){
             itemChoices.set(i,items.get((int) (items.size() * Math.random())));
         }
-        displayItemChoices();
-    }
-
-    void displayItemChoices(){
-        for(String item : itemChoices){
-            
-        }
+        return itemChoices;
     }
 }
