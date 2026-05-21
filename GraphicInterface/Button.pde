@@ -20,6 +20,6 @@ class Button{
         text(text, textLocation.x,textLocation.y);
     }
 
-    void press(){
+    void pressed(){
     }
 }
