@@ -14,10 +14,18 @@ class Button{
     }
 
     void display(){
+        pushStyle();
         fill(fillColor);
         rect((int) location.x, (int) location.y, (int) dimensions.x, (int) dimensions.y);
         fill(color(255));
-        text(text, textLocation.x,textLocation.y);
+        textAlign(CENTER, CENTER);
+        text(text, textLocation.x, textLocation.y);
+        popStyle();
+    }
+
+    boolean containsPoint(float x, float y){
+        return x >= location.x && x <= location.x + dimensions.x &&
+               y >= location.y && y <= location.y + dimensions.y;
     }
 
     void pressed(){

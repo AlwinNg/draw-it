@@ -1,7 +1,7 @@
 Canvas canvas;
 Pen pen;
-Button b;
-ArrayList<Button> buttons; //Maybe use a hashmap instead
+Game game;
+ArrayList<ItemButton> itemButtons;
 
 void setup() {
   frameRate(1000);
@@ -9,23 +9,84 @@ void setup() {
   background(100,100,100);
   canvas = new Canvas(700, 500,50,50);
   pen = new Pen();
-  b = new Button(800,100,100,100,color(0),"hi",850,150);
-  buttons = new ArrayList<>();
+  game = new Game();
+  itemButtons = new ArrayList<>();
+  createItemButtons();
 }
 
 void draw() {
   background(100,100,100);
+  game.update();
   canvas.display();
-  canvas.edit(pen);
+  if(game.drawingRound){
+    canvas.edit(pen);
+  }
   pen.updatePosition(mouseX, mouseY);
-  if(mouseX >= canvas.location.x && mouseX < canvas.location.x + canvas.dimensions.x && mouseY >= canvas.location.y && mouseY < canvas.location.y + canvas.dimensions.y){
+  if(game.drawingRound && mouseX >= canvas.location.x && mouseX < canvas.location.x + canvas.dimensions.x && mouseY >= canvas.location.y && mouseY < canvas.location.y + canvas.dimensions.y){
     pen.drawCursor(g);
   }
-  b.display();
-  buttons.add(b);
+  displayGameInfo();
+  displayItemChoices();
+}
+
+void createItemButtons(){
+  itemButtons.clear();
+  int buttonX = 820;
+  int buttonY = 160;
+  int buttonW = 260;
+  int buttonH = 70;
+  int gap = 18;
+
+  // Build one button per visible word choice so clicks can be checked by bounds.
+  for(int i = 0; i < game.itemChoices.size(); i++){
+    itemButtons.add(new ItemButton(game.itemChoices.get(i), buttonX, buttonY + i * (buttonH + gap), buttonW, buttonH));
+  }
+}
+
+void displayGameInfo(){
+  pushStyle();
+  fill(255);
+  textSize(26);
+  textAlign(LEFT, TOP);
+  if(game.choosingItem){
+    text("Choose a word to draw", 820, 90);
+  } else if(game.drawingRound){
+    text("Draw: " + game.currentItem, 820, 90);
+    text("Time: " + game.remainingSeconds(), 820, 122);
+  } else {
+    text("Time's up!", 820, 90);
+    text("Word: " + game.currentItem, 820, 122);
+  }
+  popStyle();
+}
+
+void displayItemChoices(){
+  if(!game.choosingItem){
+    return;
+  }
+
+  for(ItemButton itemButton : itemButtons){
+    itemButton.display();
+  }
 }
 
 void mousePressed() {
+  if(game.choosingItem){
+    // Use button boundaries to choose the clicked word before the drawing timer starts.
+    for(ItemButton itemButton : itemButtons){
+      if(itemButton.containsPoint(mouseX, mouseY)){
+        itemButton.pressed();
+        game.selectItem(itemButton.getItem());
+        canvas.clear();
+        return;
+      }
+    }
+  }
+
+  if(!game.drawingRound){
+    return;
+  }
+
   pen.updatePosition(mouseX, mouseY);
   pen.startDrawing();
 }
