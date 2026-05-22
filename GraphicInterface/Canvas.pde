@@ -23,18 +23,35 @@ class Canvas {
     if (!pen.isDrawing) {
       return;
     }
-    
-    int x = mouseX;
-    int y = mouseY; 
 
+    canvas.loadPixels();
+    // Fill the space between mouse samples so fast strokes stay continuous.
+    drawStrokeSegment(pen.previousPosition.x, pen.previousPosition.y, pen.position.x, pen.position.y, pen);
+  }
+
+  void drawStrokeSegment(float startX, float startY, float endX, float endY, Pen pen){
+    float distance = dist(startX, startY, endX, endY);
+    float stepSize = max(1, pen.radius / 2.0);
+    int steps = max(1, ceil(distance / stepSize));
+
+    for(int step = 0; step <= steps; step++){
+      float amount = step / (float) steps;
+      stampBrush(lerp(startX, endX, amount), lerp(startY, endY, amount), pen);
+    }
+  }
+
+  void stampBrush(float x, float y, Pen pen){
     int r = pen.radius;
+    int centerX = round(x);
+    int centerY = round(y);
+    int rSquared = r * r;
 
     for(int i = -r; i <= r; i++){
       for(int j = -r; j <= r; j++){
-        int pX = x + i;
-        int pY = y + j;
+        int pX = centerX + i;
+        int pY = centerY + j;
         if(pX >= location.x && pX < location.x + dimensions.x && pY >= location.y && pY < location.y + dimensions.y){
-          if(Math.pow(pX - x,2) + Math.pow(pY - y, 2) < Math.pow(r,2)){
+          if(i * i + j * j < rSquared){
             canvas.pixels[(pY - (int)location.y) * canvas.width + pX - (int)location.x] = pen.getPaintColor();
           }
         }

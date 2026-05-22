@@ -4,7 +4,7 @@ Game game;
 ArrayList<ItemButton> itemButtons;
 
 void setup() {
-  frameRate(1000);
+  frameRate(60);
   size(1200, 800);
   background(100,100,100);
   canvas = new Canvas(700, 500,50,50);
@@ -18,10 +18,9 @@ void draw() {
   background(100,100,100);
   game.update();
   canvas.display();
-  if(game.drawingRound){
-    canvas.edit(pen);
+  if(!pen.isDrawing){
+    pen.updatePosition(mouseX, mouseY);
   }
-  pen.updatePosition(mouseX, mouseY);
   if(game.drawingRound && mouseX >= canvas.location.x && mouseX < canvas.location.x + canvas.dimensions.x && mouseY >= canvas.location.y && mouseY < canvas.location.y + canvas.dimensions.y){
     pen.drawCursor(g);
   }
@@ -89,14 +88,25 @@ void mousePressed() {
 
   pen.updatePosition(mouseX, mouseY);
   pen.startDrawing();
+  canvas.edit(pen);
 }
 
 void mouseReleased() {
+  if(game.drawingRound && pen.isDrawing){
+    pen.updatePosition(mouseX, mouseY);
+    canvas.edit(pen);
+  }
   pen.stopDrawing();
 }
 
 void mouseDragged() {
+  if(!game.drawingRound || !pen.isDrawing){
+    return;
+  }
+
+  // Draw on every drag event so quick movements do not get dropped between frames.
   pen.updatePosition(mouseX, mouseY);
+  canvas.edit(pen);
 }
 
 void keyPressed() {
