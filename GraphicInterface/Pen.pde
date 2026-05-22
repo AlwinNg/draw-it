@@ -4,6 +4,8 @@ class Pen {
   static final int DEFAULT_RADIUS = 15;
 
   PVector position;
+  PVector previousPosition;
+  boolean hasPreviousPosition;
   boolean isDrawing;
   int radius;
   boolean isEraser;
@@ -14,6 +16,8 @@ class Pen {
 
   Pen() {
     position = new PVector(0, 0);
+    previousPosition = new PVector(0, 0);
+    hasPreviousPosition = false;
     isDrawing = false;
     isEraser = false;
     radius = DEFAULT_RADIUS;
@@ -24,15 +28,24 @@ class Pen {
   }
 
   void updatePosition(float x, float y) {
+    if(hasPreviousPosition){
+      previousPosition.set(position);
+    } else {
+      previousPosition.set(x, y);
+      hasPreviousPosition = true;
+    }
     position.set(x, y);
   }
 
   void startDrawing() {
+    previousPosition.set(position);
+    hasPreviousPosition = true;
     isDrawing = true;
   }
 
   void stopDrawing() {
     isDrawing = false;
+    hasPreviousPosition = false;
   }
 
   void setEraser(boolean val) {
