@@ -4,7 +4,7 @@ class Game{
     ArrayList<String> itemChoices;
     String currentItem;
     int numChoices = 5;
-    int roundLengthSeconds = 60;
+    int roundLengthSeconds = 20;
     int roundStartMillis;
     boolean choosingItem;
     boolean drawingRound;
