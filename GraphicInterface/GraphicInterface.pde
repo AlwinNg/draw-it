@@ -1,3 +1,6 @@
+import java.util.*;
+import java.io.*;
+
 Canvas canvas;
 Pen pen;
 Game game;

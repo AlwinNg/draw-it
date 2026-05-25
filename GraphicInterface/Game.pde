@@ -1,3 +1,6 @@
+import java.util.*;
+import java.io.*;
+
 class Game{
     float score;
     ArrayList<String> items;
@@ -18,12 +21,19 @@ class Game{
     }
 
     void loadItems(){
-        // Temporary word bank; later this can be replaced with a larger file-backed list.
-        items.add("apple");
-        items.add("house");
-        items.add("robot");
-        items.add("guitar");
-        items.add("mountain");
+        try{
+            File f = new File(sketchPath("categories.txt"));
+            BufferedReader r = new BufferedReader(new FileReader(f));
+            while(true){
+                items.add(r.readLine());
+                if(items.get(items.size() - 1) == null){
+                    items.remove(items.size() - 1);
+                    break;
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();         
+        }
     }
 
     void startChoosing(){
