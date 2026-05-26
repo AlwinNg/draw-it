@@ -60,7 +60,7 @@ void createItemButtons(){
   int buttonH = 70;
   int gap = 18;
 
-  // Build one button per visible word choice so clicks can be checked by bounds.
+  // make one button for each choice
   for(int i = 0; i < game.itemChoices.size(); i++){
     itemButtons.add(new ItemButton(game.itemChoices.get(i), buttonX, buttonY + i * (buttonH + gap), buttonW, buttonH));
   }
@@ -73,8 +73,10 @@ void drawLayout(){
   rect(canvas.location.x - 8, canvas.location.y - 8, canvas.dimensions.x + 16, canvas.dimensions.y + 16, 8);
   fill(22, 25, 31);
   rect(790, 50, 350, 660, 8);
-  fill(51, 58, 70);
-  rect(815, 460, 300, 1);
+  if(!game.choosingItem){
+    fill(51, 58, 70);
+    rect(815, 460, 300, 1);
+  }
   popStyle();
 }
 
@@ -85,34 +87,58 @@ void displayGameInfo(){
   textSize(30);
   if(game.choosingItem){
     text("Choose a word", 820, 85);
+    textSize(18);
+    fill(180);
+    text("Round " + (game.roundNumber + 1) + " of " + game.totalRounds, 820, 125);
+    text("Score: " + game.score, 820, 540);
+    text("Lower score wins", 820, 570);
   } else if(game.drawingRound){
     fill(180, 207, 255);
     textSize(18);
-    text("Draw", 820, 82);
+    text("Round " + game.roundNumber + " of " + game.totalRounds, 820, 82);
     fill(255);
     textSize(34);
     text(game.currentItem, 820, 108);
     textSize(22);
     fill(230);
     text("Time: " + game.remainingSeconds(), 820, 160);
+    text("Score: " + game.score, 820, 192);
     fill(124, 223, 172);
-    text("I predict: " + currentPrediction, 820, 198);
-  } else {
+    text("I predict: " + currentPrediction, 820, 230);
+  } else if(game.showingResult){
     fill(255);
     textSize(28);
     text(game.roundMessage, 820, 90, 290, 90);
     textSize(20);
     fill(220);
-    text("Next round starting...", 820, 185);
+    text("Score: " + game.score, 820, 185);
+    if(game.roundNumber < game.totalRounds){
+      text("Next round starting...", 820, 220);
+    } else {
+      text("Finishing game...", 820, 220);
+    }
+  } else if(game.gameOver){
+    fill(255);
+    textSize(30);
+    text("Game over", 820, 90);
+    textSize(24);
+    text("Final score: " + game.score, 820, 140);
+    textSize(18);
+    fill(180);
+    text("Lower is better", 820, 180);
+    text("Press R to play again", 820, 220);
   }
 
-  textSize(16);
-  fill(180);
-  text("E: eraser", 820, 490);
-  text("C: clear", 820, 518);
-  text("[ / ]: brush size", 820, 546);
-  text("Brush: " + pen.radius, 820, 592);
-  text("Mode: " + (pen.isEraser ? "eraser" : "draw"), 820, 620);
+  if(!game.choosingItem && !game.gameOver){
+    textSize(16);
+    fill(180);
+    text("E: switch to " + (pen.isEraser ? "draw" : "eraser"), 820, 490);
+    text("C: clear", 820, 518);
+    text("[: smaller brush", 820, 546);
+    text("]: bigger brush", 820, 574);
+    text("Brush: " + pen.radius, 820, 610);
+    text("Mode: " + (pen.isEraser ? "eraser" : "draw"), 820, 638);
+  }
   popStyle();
 }
 
@@ -128,7 +154,7 @@ void displayItemChoices(){
 
 void mousePressed() {
   if(game.choosingItem){
-    // Use button boundaries to choose the clicked word before the drawing timer starts.
+    // check button bounds before the timer starts
     for(ItemButton itemButton : itemButtons){
       if(itemButton.containsPoint(mouseX, mouseY)){
         itemButton.pressed();
@@ -161,7 +187,7 @@ void mouseDragged() {
     return;
   }
 
-  // Draw on every drag event so quick movements do not get dropped between frames.
+  // draw on every drag event
   pen.updatePosition(mouseX, mouseY);
   canvas.edit(pen);
 }
@@ -170,6 +196,9 @@ void keyPressed() {
   if (key == 'e' || key == 'E') {
     pen.toggleEraser();
   } else if (key == 'c' || key == 'C') {
+    canvas.clear();
+  } else if (key == 'r' || key == 'R') {
+    game.resetGame();
     canvas.clear();
   } else if (key == '[') {
     pen.changeRadius(-2);

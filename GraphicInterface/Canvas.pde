@@ -30,7 +30,7 @@ class Canvas {
       hasInk = true;
     }
     canvas.loadPixels();
-    // Fill the space between mouse samples so fast strokes stay continuous.
+    // fill gaps between mouse samples
     drawStrokeSegment(pen.previousPosition.x, pen.previousPosition.y, pen.position.x, pen.position.y, pen);
   }
 
