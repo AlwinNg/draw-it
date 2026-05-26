@@ -1,10 +1,13 @@
+import java.util.*;
+import java.io.*;
+
 class Game{
     float score;
     ArrayList<String> items;
     ArrayList<String> itemChoices;
     String currentItem;
     int numChoices = 5;
-    int roundLengthSeconds = 60;
+    int roundLengthSeconds = 20;
     int roundStartMillis;
     boolean choosingItem;
     boolean drawingRound;
@@ -18,12 +21,25 @@ class Game{
     }
 
     void loadItems(){
-        // Temporary word bank; later this can be replaced with a larger file-backed list.
-        items.add("apple");
+        // try{
+        //     File f = new File(sketchPath("categories.txt"));
+        //     BufferedReader r = new BufferedReader(new FileReader(f));
+        //     while(true){
+        //         items.add(r.readLine());
+        //         if(items.get(items.size() - 1) == null){
+        //             items.remove(items.size() - 1);
+        //             break;
+        //         }
+        //     }
+        // } catch (Exception e){
+        //     e.printStackTrace();         
+        // }
+
+        items.add("cat");
+        items.add("dog");
         items.add("house");
-        items.add("robot");
-        items.add("guitar");
-        items.add("mountain");
+        items.add("car");
+        items.add("tree");
     }
 
     void startChoosing(){
