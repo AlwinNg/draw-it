@@ -5,6 +5,8 @@ Canvas canvas;
 Pen pen;
 Game game;
 ArrayList<ItemButton> itemButtons;
+int displayedChoiceVersion = -1;
+String currentPrediction = "unknown";
 
 import ai.onnxruntime.*;
 
@@ -18,17 +20,20 @@ void setup() {
   background(100,100,100);
   canvas = new Canvas(700, 500,50,50);
   pen = new Pen();
+  loadModel();
   game = new Game();
   itemButtons = new ArrayList<>();
-  createItemButtons();
-
-  loadModel();
+  syncItemButtons();
 
 }
 
 void draw() {
-  background(100,100,100);
+  background(35, 39, 47);
   game.update();
+  syncItemButtons();
+  updatePrediction();
+  checkCorrectPrediction();
+  drawLayout();
   canvas.display();
   if(!pen.isDrawing){
     pen.updatePosition(mouseX, mouseY);
@@ -38,6 +43,13 @@ void draw() {
   }
   displayGameInfo();
   displayItemChoices();
+}
+
+void syncItemButtons(){
+  if(game.choosingItem && displayedChoiceVersion != game.choiceSetVersion){
+    createItemButtons();
+    displayedChoiceVersion = game.choiceSetVersion;
+  }
 }
 
 void createItemButtons(){
@@ -54,21 +66,53 @@ void createItemButtons(){
   }
 }
 
+void drawLayout(){
+  pushStyle();
+  noStroke();
+  fill(245);
+  rect(canvas.location.x - 8, canvas.location.y - 8, canvas.dimensions.x + 16, canvas.dimensions.y + 16, 8);
+  fill(22, 25, 31);
+  rect(790, 50, 350, 660, 8);
+  fill(51, 58, 70);
+  rect(815, 460, 300, 1);
+  popStyle();
+}
+
 void displayGameInfo(){
   pushStyle();
-  fill(255);
-  textSize(26);
   textAlign(LEFT, TOP);
+  fill(255);
+  textSize(30);
   if(game.choosingItem){
-    text("Choose a word to draw", 820, 90);
+    text("Choose a word", 820, 85);
   } else if(game.drawingRound){
-    text("Draw: " + game.currentItem, 820, 90);
-    text("Time: " + game.remainingSeconds(), 820, 122);
-    text(classify(canvas.canvas), 820, 150);
+    fill(180, 207, 255);
+    textSize(18);
+    text("Draw", 820, 82);
+    fill(255);
+    textSize(34);
+    text(game.currentItem, 820, 108);
+    textSize(22);
+    fill(230);
+    text("Time: " + game.remainingSeconds(), 820, 160);
+    fill(124, 223, 172);
+    text("I predict: " + currentPrediction, 820, 198);
   } else {
-    text("Time's up!", 820, 90);
-    text("Word: " + game.currentItem, 820, 122);
+    fill(255);
+    textSize(28);
+    text(game.roundMessage, 820, 90, 290, 90);
+    textSize(20);
+    fill(220);
+    text("Next round starting...", 820, 185);
   }
+
+  textSize(16);
+  fill(180);
+  text("E: eraser", 820, 490);
+  text("C: clear", 820, 518);
+  text("[ / ]: brush size", 820, 546);
+  text("Brush: " + pen.radius, 820, 592);
+  text("Mode: " + (pen.isEraser ? "eraser" : "draw"), 820, 620);
   popStyle();
 }
 
@@ -136,7 +180,26 @@ void keyPressed() {
   }
 }
 
+void updatePrediction(){
+  if(game.drawingRound){
+    currentPrediction = classify(canvas.canvas);
+  } else if(game.choosingItem){
+    currentPrediction = "unknown";
+  }
+}
+
+void checkCorrectPrediction(){
+  if(game.drawingRound && canvas.hasInk && currentPrediction.equals(game.currentItem)){
+    game.correctGuess(currentPrediction);
+    pen.stopDrawing();
+  }
+}
+
 String classify(PImage canvas) {
+  if(env == null || session == null || labels == null || labels.length == 0){
+    return "unknown";
+  }
+
   PImage small = canvas.get();
   small.resize(28, 28);
   small.loadPixels();
@@ -157,6 +220,9 @@ String classify(PImage canvas) {
     int best = 0;
     for (int i = 1; i < scores.length; i++)
       if (scores[i] > scores[best]) best = i;
+    if(best < 0 || best >= labels.length){
+      return "unknown";
+    }
     return labels[best];
   } catch (Exception e) {
     println(e); return "unknown";

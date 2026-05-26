@@ -6,11 +6,16 @@ class Game{
     ArrayList<String> items;
     ArrayList<String> itemChoices;
     String currentItem;
+    String roundMessage;
     int numChoices = 5;
     int roundLengthSeconds = 20;
     int roundStartMillis;
+    int resultStartMillis;
+    int resultLengthMillis = 1200;
+    int choiceSetVersion;
     boolean choosingItem;
     boolean drawingRound;
+    boolean showingResult;
 
     Game(){
         score = 0;
@@ -21,31 +26,30 @@ class Game{
     }
 
     void loadItems(){
-        // try{
-        //     File f = new File(sketchPath("categories.txt"));
-        //     BufferedReader r = new BufferedReader(new FileReader(f));
-        //     while(true){
-        //         items.add(r.readLine());
-        //         if(items.get(items.size() - 1) == null){
-        //             items.remove(items.size() - 1);
-        //             break;
-        //         }
-        //     }
-        // } catch (Exception e){
-        //     e.printStackTrace();         
-        // }
+        String[] supportedLabels = loadStrings("labels.txt");
+        if(supportedLabels != null){
+            for(String label : supportedLabels){
+                if(label != null && label.trim().length() > 0){
+                    items.add(label.trim());
+                }
+            }
+        }
 
-        items.add("cat");
-        items.add("dog");
-        items.add("house");
-        items.add("car");
-        items.add("tree");
+        if(items.size() == 0){
+            items.add("cat");
+            items.add("dog");
+            items.add("house");
+            items.add("car");
+            items.add("tree");
+        }
     }
 
     void startChoosing(){
         currentItem = "";
+        roundMessage = "";
         choosingItem = true;
         drawingRound = false;
+        showingResult = false;
         newItems();
     }
 
@@ -58,6 +62,7 @@ class Game{
             int index = (int) random(availableItems.size());
             itemChoices.add(availableItems.remove(index));
         }
+        choiceSetVersion++;
         return itemChoices;
     }
 
@@ -65,7 +70,23 @@ class Game{
         currentItem = item;
         choosingItem = false;
         drawingRound = true;
+        showingResult = false;
+        roundMessage = "";
         roundStartMillis = millis();
+    }
+
+    void correctGuess(String prediction){
+        roundMessage = "Correct! I guessed " + prediction + ".";
+        drawingRound = false;
+        showingResult = true;
+        resultStartMillis = millis();
+    }
+
+    void timeUp(){
+        roundMessage = "Time's up!";
+        drawingRound = false;
+        showingResult = true;
+        resultStartMillis = millis();
     }
 
     int remainingSeconds(){
@@ -79,7 +100,11 @@ class Game{
 
     void update(){
         if(drawingRound && remainingSeconds() == 0){
-            drawingRound = false;
+            timeUp();
+        }
+
+        if(showingResult && millis() - resultStartMillis >= resultLengthMillis){
+            startChoosing();
         }
     }
 }

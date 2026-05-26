@@ -2,6 +2,7 @@ class Canvas {
   PImage canvas;
   PVector location;
   PVector dimensions;
+  boolean hasInk;
 
   Canvas(int w, int h, int x, int y) {
     canvas = createImage(w,h,RGB);
@@ -11,6 +12,7 @@ class Canvas {
     canvas.loadPixels();
     location = new PVector(x,y);
     dimensions = new PVector(w,h);
+    hasInk = false;
   }
 
   void display() {
@@ -24,6 +26,9 @@ class Canvas {
       return;
     }
 
+    if(!pen.isEraser){
+      hasInk = true;
+    }
     canvas.loadPixels();
     // Fill the space between mouse samples so fast strokes stay continuous.
     drawStrokeSegment(pen.previousPosition.x, pen.previousPosition.y, pen.position.x, pen.position.y, pen);
@@ -63,6 +68,7 @@ class Canvas {
     for (int i = 0; i < canvas.pixels.length; i++) {
       canvas.pixels[i] = color(256, 256, 256); 
     }
+    hasInk = false;
     canvas.loadPixels();
   }
 }
