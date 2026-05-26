@@ -6,6 +6,12 @@ Pen pen;
 Game game;
 ArrayList<ItemButton> itemButtons;
 
+import ai.onnxruntime.*;
+
+OrtSession session;
+OrtEnvironment env;
+String[] labels;
+
 void setup() {
   frameRate(60);
   size(1200, 800);
@@ -15,6 +21,9 @@ void setup() {
   game = new Game();
   itemButtons = new ArrayList<>();
   createItemButtons();
+
+  loadModel();
+
 }
 
 void draw() {
@@ -55,6 +64,7 @@ void displayGameInfo(){
   } else if(game.drawingRound){
     text("Draw: " + game.currentItem, 820, 90);
     text("Time: " + game.remainingSeconds(), 820, 122);
+    text(classify(canvas.canvas), 820, 150);
   } else {
     text("Time's up!", 820, 90);
     text("Word: " + game.currentItem, 820, 122);
@@ -123,5 +133,52 @@ void keyPressed() {
     pen.changeRadius(2);
   } else if (key == '0') {
     pen.resetRadius();
+  }
+}
+
+String classify(PImage canvas) {
+  PImage small = canvas.get();
+  small.resize(28, 28);
+  small.loadPixels();
+  
+  float[][][][] input = new float[1][1][28][28];
+  for (int y = 0; y < 28; y++) {
+    for (int x = 0; x < 28; x++) {
+      input[0][0][y][x] = 1.0 - brightness(small.pixels[y*28+x]) / 255.0;
+    }
+  }
+  
+  try {
+    OnnxTensor tensor = OnnxTensor.createTensor(env, input);
+    OrtSession.Result result = session.run(
+      Collections.singletonMap("image", tensor));
+    float[] scores = ((float[][]) result.get(0).getValue())[0];
+    
+    int best = 0;
+    for (int i = 1; i < scores.length; i++)
+      if (scores[i] > scores[best]) best = i;
+    return labels[best];
+  } catch (Exception e) {
+    println(e); return "unknown";
+  }
+
+  
+}
+void loadModel() {
+  try {
+    env = OrtEnvironment.getEnvironment();    
+    String modelPath = sketchPath("data/sketch_model.onnx");    
+    File f = new File(modelPath);
+    if (!f.exists()) {
+      return;
+    }    
+    session = env.createSession(modelPath);    
+    labels = loadStrings("labels.txt");
+    if (labels == null || labels.length == 0) {
+      return;
+    }    
+  } catch (Exception e) {
+    println("error");
+    e.printStackTrace();
   }
 }

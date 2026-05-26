@@ -21,19 +21,25 @@ class Game{
     }
 
     void loadItems(){
-        try{
-            File f = new File(sketchPath("categories.txt"));
-            BufferedReader r = new BufferedReader(new FileReader(f));
-            while(true){
-                items.add(r.readLine());
-                if(items.get(items.size() - 1) == null){
-                    items.remove(items.size() - 1);
-                    break;
-                }
-            }
-        } catch (Exception e){
-            e.printStackTrace();         
-        }
+        // try{
+        //     File f = new File(sketchPath("categories.txt"));
+        //     BufferedReader r = new BufferedReader(new FileReader(f));
+        //     while(true){
+        //         items.add(r.readLine());
+        //         if(items.get(items.size() - 1) == null){
+        //             items.remove(items.size() - 1);
+        //             break;
+        //         }
+        //     }
+        // } catch (Exception e){
+        //     e.printStackTrace();         
+        // }
+
+        items.add("cat");
+        items.add("dog");
+        items.add("house");
+        items.add("car");
+        items.add("tree");
     }
 
     void startChoosing(){
