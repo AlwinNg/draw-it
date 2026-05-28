@@ -5,6 +5,9 @@ Canvas canvas;
 Pen pen;
 Game game;
 ArrayList<ItemButton> itemButtons;
+int displayedChoiceVersion = -1;
+String currentPrediction = "unknown";
+int infoX = 1020;
 
 import ai.onnxruntime.*;
 
@@ -14,21 +17,24 @@ String[] labels;
 
 void setup() {
   frameRate(60);
-  size(1200, 800);
+  size(1500, 1000);
   background(100,100,100);
-  canvas = new Canvas(700, 500,50,50);
+  canvas = new Canvas(900, 900,50,50);
   pen = new Pen();
+  loadModel();
   game = new Game();
   itemButtons = new ArrayList<>();
-  createItemButtons();
-
-  loadModel();
+  syncItemButtons();
 
 }
 
 void draw() {
-  background(100,100,100);
+  background(35, 39, 47);
   game.update();
+  syncItemButtons();
+  updatePrediction();
+  checkCorrectPrediction();
+  // drawLayout();
   canvas.display();
   if(!pen.isDrawing){
     pen.updatePosition(mouseX, mouseY);
@@ -40,34 +46,99 @@ void draw() {
   displayItemChoices();
 }
 
+void syncItemButtons(){
+  if(game.choosingItem && displayedChoiceVersion != game.choiceSetVersion){
+    createItemButtons();
+    displayedChoiceVersion = game.choiceSetVersion;
+  }
+}
+
 void createItemButtons(){
   itemButtons.clear();
-  int buttonX = 820;
+  int buttonX = infoX;
   int buttonY = 160;
   int buttonW = 260;
   int buttonH = 70;
   int gap = 18;
 
-  // Build one button per visible word choice so clicks can be checked by bounds.
+  // make one button for each choice
   for(int i = 0; i < game.itemChoices.size(); i++){
     itemButtons.add(new ItemButton(game.itemChoices.get(i), buttonX, buttonY + i * (buttonH + gap), buttonW, buttonH));
   }
 }
 
+void drawLayout(){
+  pushStyle();
+  noStroke();
+  fill(245);
+  rect(canvas.location.x - 8, canvas.location.y - 8, canvas.dimensions.x + 16, canvas.dimensions.y + 16, 8);
+  fill(22, 25, 31);
+  rect(790, 50, 350, 660, 8);
+  if(!game.choosingItem){
+    fill(51, 58, 70);
+    rect(815, 460, 300, 1);
+  }
+  popStyle();
+}
+
 void displayGameInfo(){
   pushStyle();
-  fill(255);
-  textSize(26);
   textAlign(LEFT, TOP);
+  fill(255);
+  textSize(30);
   if(game.choosingItem){
-    text("Choose a word to draw", 820, 90);
+    text("Choose a word", infoX, 85);
+    textSize(18);
+    fill(180);
+    text("Round " + (game.roundNumber + 1) + " of " + game.totalRounds, infoX, 125);
+    text("Score: " + game.score, infoX, 600);
+    text("Lower score wins", infoX, 630);
   } else if(game.drawingRound){
-    text("Draw: " + game.currentItem, 820, 90);
-    text("Time: " + game.remainingSeconds(), 820, 122);
-    text(classify(canvas.canvas), 820, 150);
-  } else {
-    text("Time's up!", 820, 90);
-    text("Word: " + game.currentItem, 820, 122);
+    fill(180, 207, 255);
+    textSize(18);
+    text("Round " + game.roundNumber + " of " + game.totalRounds, infoX, 82);
+    fill(255);
+    textSize(34);
+    text(game.currentItem, infoX, 108);
+    textSize(22);
+    fill(230);
+    text("Time: " + game.remainingSeconds(), infoX, 160);
+    text("Score: " + game.score, infoX, 192);
+    fill(124, 223, 172);
+    text("I predict: " + currentPrediction, infoX, 230);
+  } else if(game.showingResult){
+    fill(255);
+    textSize(28);
+    text(game.roundMessage, infoX, 90, 290, 90);
+    textSize(20);
+    fill(220);
+    text("Score: " + game.score, infoX, 185);
+    if(game.roundNumber < game.totalRounds){
+      text("Next round starting...", infoX, 220);
+    } else {
+      text("Finishing game...", infoX, 220);
+    }
+  } else if(game.gameOver){
+    fill(255);
+    textSize(30);
+    text("Game over", infoX, 90);
+    textSize(24);
+    text("Final score: " + game.score, infoX, 140);
+    textSize(18);
+    fill(180);
+    text("Lower is better", infoX, 180);
+    text("Press R to play again", infoX, 220);
+  }
+
+  if(!game.choosingItem && !game.gameOver){
+    textSize(16);
+    fill(180);
+    text("E: switch to " + (pen.isEraser ? "draw" : "eraser"), infoX, 490);
+    text("C: clear", infoX, 518);
+    text("[: smaller brush", infoX, 546);
+    text("]: bigger brush", infoX, 574);
+    text("Brush: " + pen.radius, infoX, 610);
+    text("Mode: " + (pen.isEraser ? "eraser" : "draw"), infoX, 638);
   }
   popStyle();
 }
@@ -84,7 +155,7 @@ void displayItemChoices(){
 
 void mousePressed() {
   if(game.choosingItem){
-    // Use button boundaries to choose the clicked word before the drawing timer starts.
+    // check button bounds before the timer starts
     for(ItemButton itemButton : itemButtons){
       if(itemButton.containsPoint(mouseX, mouseY)){
         itemButton.pressed();
@@ -117,7 +188,7 @@ void mouseDragged() {
     return;
   }
 
-  // Draw on every drag event so quick movements do not get dropped between frames.
+  // draw on every drag event
   pen.updatePosition(mouseX, mouseY);
   canvas.edit(pen);
 }
@@ -126,6 +197,9 @@ void keyPressed() {
   if (key == 'e' || key == 'E') {
     pen.toggleEraser();
   } else if (key == 'c' || key == 'C') {
+    canvas.clear();
+  } else if (key == 'r' || key == 'R') {
+    game.resetGame();
     canvas.clear();
   } else if (key == '[') {
     pen.changeRadius(-2);
@@ -136,8 +210,30 @@ void keyPressed() {
   }
 }
 
+void updatePrediction(){
+  if(game.drawingRound){
+    currentPrediction = classify(canvas.canvas);
+  } else if(game.choosingItem){
+    currentPrediction = "unknown";
+  }
+}
+
+void checkCorrectPrediction(){
+  if(game.drawingRound && canvas.hasInk && currentPrediction.equals(game.currentItem)){
+    game.correctGuess(currentPrediction);
+    pen.stopDrawing();
+  }
+}
+
 String classify(PImage canvas) {
+  if(env == null || session == null || labels == null || labels.length == 0){
+    return "unknown";
+  }
+
   PImage small = canvas.get();
+ 
+
+
   small.resize(28, 28);
   small.loadPixels();
   
@@ -157,6 +253,9 @@ String classify(PImage canvas) {
     int best = 0;
     for (int i = 1; i < scores.length; i++)
       if (scores[i] > scores[best]) best = i;
+    if(best < 0 || best >= labels.length){
+      return "unknown";
+    }
     return labels[best];
   } catch (Exception e) {
     println(e); return "unknown";
@@ -167,13 +266,13 @@ String classify(PImage canvas) {
 void loadModel() {
   try {
     env = OrtEnvironment.getEnvironment();    
-    String modelPath = sketchPath("data/sketch_model.onnx");    
+    String modelPath = sketchPath("data2/sketch_model.onnx");    
     File f = new File(modelPath);
     if (!f.exists()) {
       return;
     }    
     session = env.createSession(modelPath);    
-    labels = loadStrings("labels.txt");
+    labels = loadStrings("categories.txt");
     if (labels == null || labels.length == 0) {
       return;
     }    

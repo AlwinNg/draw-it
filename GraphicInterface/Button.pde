@@ -15,9 +15,11 @@ class Button{
 
     void display(){
         pushStyle();
+        noStroke();
         fill(fillColor);
-        rect((int) location.x, (int) location.y, (int) dimensions.x, (int) dimensions.y);
+        rect((int) location.x, (int) location.y, (int) dimensions.x, (int) dimensions.y, 8);
         fill(color(255));
+        textSize(24);
         textAlign(CENTER, CENTER);
         text(text, textLocation.x, textLocation.y);
         popStyle();
