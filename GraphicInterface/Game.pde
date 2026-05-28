@@ -90,7 +90,7 @@ class Game{
     }
 
     void correctGuess(String prediction){
-        lastRoundScore = elapsedSeconds();
+        lastRoundScore = roundLengthSeconds - elapsedSeconds();
         score += lastRoundScore;
         roundMessage = "Correct! I guessed " + prediction + ". +" + lastRoundScore;
         drawingRound = false;
@@ -99,8 +99,8 @@ class Game{
     }
 
     void timeUp(){
-        lastRoundScore = roundLengthSeconds + timeUpPenalty;
-        score += lastRoundScore;
+        lastRoundScore = -timeUpPenalty;
+        score = Math.max(0,score + timeUpPenalty);
         roundMessage = "Time's up! +" + lastRoundScore;
         drawingRound = false;
         showingResult = true;

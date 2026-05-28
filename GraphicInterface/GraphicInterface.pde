@@ -92,7 +92,6 @@ void displayGameInfo(){
     fill(180);
     text("Round " + (game.roundNumber + 1) + " of " + game.totalRounds, infoX, 125);
     text("Score: " + game.score, infoX, 600);
-    text("Lower score wins", infoX, 630);
   } else if(game.drawingRound){
     fill(180, 207, 255);
     textSize(18);
@@ -126,7 +125,6 @@ void displayGameInfo(){
     text("Final score: " + game.score, infoX, 140);
     textSize(18);
     fill(180);
-    text("Lower is better", infoX, 180);
     text("Press R to play again", infoX, 220);
   }
 
