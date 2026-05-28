@@ -7,6 +7,7 @@ Game game;
 ArrayList<ItemButton> itemButtons;
 int displayedChoiceVersion = -1;
 String currentPrediction = "unknown";
+int infoX = 1020;
 
 import ai.onnxruntime.*;
 
@@ -16,9 +17,9 @@ String[] labels;
 
 void setup() {
   frameRate(60);
-  size(1200, 800);
+  size(1500, 1000);
   background(100,100,100);
-  canvas = new Canvas(700, 500,50,50);
+  canvas = new Canvas(900, 900,50,50);
   pen = new Pen();
   loadModel();
   game = new Game();
@@ -33,7 +34,7 @@ void draw() {
   syncItemButtons();
   updatePrediction();
   checkCorrectPrediction();
-  drawLayout();
+  // drawLayout();
   canvas.display();
   if(!pen.isDrawing){
     pen.updatePosition(mouseX, mouseY);
@@ -54,7 +55,7 @@ void syncItemButtons(){
 
 void createItemButtons(){
   itemButtons.clear();
-  int buttonX = 820;
+  int buttonX = infoX;
   int buttonY = 160;
   int buttonW = 260;
   int buttonH = 70;
@@ -86,58 +87,58 @@ void displayGameInfo(){
   fill(255);
   textSize(30);
   if(game.choosingItem){
-    text("Choose a word", 820, 85);
+    text("Choose a word", infoX, 85);
     textSize(18);
     fill(180);
-    text("Round " + (game.roundNumber + 1) + " of " + game.totalRounds, 820, 125);
-    text("Score: " + game.score, 820, 540);
-    text("Lower score wins", 820, 570);
+    text("Round " + (game.roundNumber + 1) + " of " + game.totalRounds, infoX, 125);
+    text("Score: " + game.score, infoX, 600);
+    text("Lower score wins", infoX, 630);
   } else if(game.drawingRound){
     fill(180, 207, 255);
     textSize(18);
-    text("Round " + game.roundNumber + " of " + game.totalRounds, 820, 82);
+    text("Round " + game.roundNumber + " of " + game.totalRounds, infoX, 82);
     fill(255);
     textSize(34);
-    text(game.currentItem, 820, 108);
+    text(game.currentItem, infoX, 108);
     textSize(22);
     fill(230);
-    text("Time: " + game.remainingSeconds(), 820, 160);
-    text("Score: " + game.score, 820, 192);
+    text("Time: " + game.remainingSeconds(), infoX, 160);
+    text("Score: " + game.score, infoX, 192);
     fill(124, 223, 172);
-    text("I predict: " + currentPrediction, 820, 230);
+    text("I predict: " + currentPrediction, infoX, 230);
   } else if(game.showingResult){
     fill(255);
     textSize(28);
-    text(game.roundMessage, 820, 90, 290, 90);
+    text(game.roundMessage, infoX, 90, 290, 90);
     textSize(20);
     fill(220);
-    text("Score: " + game.score, 820, 185);
+    text("Score: " + game.score, infoX, 185);
     if(game.roundNumber < game.totalRounds){
-      text("Next round starting...", 820, 220);
+      text("Next round starting...", infoX, 220);
     } else {
-      text("Finishing game...", 820, 220);
+      text("Finishing game...", infoX, 220);
     }
   } else if(game.gameOver){
     fill(255);
     textSize(30);
-    text("Game over", 820, 90);
+    text("Game over", infoX, 90);
     textSize(24);
-    text("Final score: " + game.score, 820, 140);
+    text("Final score: " + game.score, infoX, 140);
     textSize(18);
     fill(180);
-    text("Lower is better", 820, 180);
-    text("Press R to play again", 820, 220);
+    text("Lower is better", infoX, 180);
+    text("Press R to play again", infoX, 220);
   }
 
   if(!game.choosingItem && !game.gameOver){
     textSize(16);
     fill(180);
-    text("E: switch to " + (pen.isEraser ? "draw" : "eraser"), 820, 490);
-    text("C: clear", 820, 518);
-    text("[: smaller brush", 820, 546);
-    text("]: bigger brush", 820, 574);
-    text("Brush: " + pen.radius, 820, 610);
-    text("Mode: " + (pen.isEraser ? "eraser" : "draw"), 820, 638);
+    text("E: switch to " + (pen.isEraser ? "draw" : "eraser"), infoX, 490);
+    text("C: clear", infoX, 518);
+    text("[: smaller brush", infoX, 546);
+    text("]: bigger brush", infoX, 574);
+    text("Brush: " + pen.radius, infoX, 610);
+    text("Mode: " + (pen.isEraser ? "eraser" : "draw"), infoX, 638);
   }
   popStyle();
 }
@@ -230,6 +231,9 @@ String classify(PImage canvas) {
   }
 
   PImage small = canvas.get();
+ 
+
+
   small.resize(28, 28);
   small.loadPixels();
   
@@ -262,13 +266,13 @@ String classify(PImage canvas) {
 void loadModel() {
   try {
     env = OrtEnvironment.getEnvironment();    
-    String modelPath = sketchPath("data/sketch_model.onnx");    
+    String modelPath = sketchPath("data2/sketch_model.onnx");    
     File f = new File(modelPath);
     if (!f.exists()) {
       return;
     }    
     session = env.createSession(modelPath);    
-    labels = loadStrings("labels.txt");
+    labels = loadStrings("categories.txt");
     if (labels == null || labels.length == 0) {
       return;
     }    

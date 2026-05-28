@@ -32,7 +32,7 @@ class Game{
     }
 
     void loadItems(){
-        String[] supportedLabels = loadStrings("labels.txt");
+        String[] supportedLabels = loadStrings("categories.txt");
         if(supportedLabels != null){
             for(String label : supportedLabels){
                 if(label != null && label.trim().length() > 0){
