@@ -100,7 +100,7 @@ class Game{
 
     void timeUp(){
         lastRoundScore = -timeUpPenalty;
-        score = Math.max(0,score + timeUpPenalty);
+        score = Math.max(0,score + lastRoundScore);
         roundMessage = "Time's up! +" + lastRoundScore;
         drawingRound = false;
         showingResult = true;
