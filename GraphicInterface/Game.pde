@@ -101,7 +101,7 @@ class Game{
     void timeUp(){
         lastRoundScore = -timeUpPenalty;
         score = Math.max(0,score + lastRoundScore);
-        roundMessage = "Time's up! +" + lastRoundScore;
+        roundMessage = "Time's up! 10 Point Deduction";
         drawingRound = false;
         showingResult = true;
         resultStartMillis = millis();
