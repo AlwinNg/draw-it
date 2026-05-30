@@ -1,5 +1,5 @@
 class Pen {
-  static final int MIN_RADIUS = 2;
+  static final int MIN_RADIUS = 19;
   static final int MAX_RADIUS = 60;
   static final int DEFAULT_RADIUS = 19;
 
