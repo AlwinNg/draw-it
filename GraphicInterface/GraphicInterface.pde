@@ -264,7 +264,7 @@ String classify(PImage canvas) {
 void loadModel() {
   try {
     env = OrtEnvironment.getEnvironment();    
-    String modelPath = sketchPath("data2/sketch_model.onnx");    
+    String modelPath = sketchPath("data/sketch_model.onnx");    
     File f = new File(modelPath);
     if (!f.exists()) {
       return;
