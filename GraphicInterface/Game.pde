@@ -6,8 +6,10 @@ class Game{
     int lastRoundScore;
     ArrayList<String> items;
     ArrayList<String> itemChoices;
+    ArrayList<RoundResult> scoreHistory;
     String currentItem;
     String roundMessage;
+    String resultPrediction;
     int numChoices = 5;
     int totalRounds = 5;
     int roundNumber;
@@ -21,6 +23,8 @@ class Game{
     boolean drawingRound;
     boolean showingResult;
     boolean gameOver;
+    boolean startScreen;
+    boolean roundSucceeded;
 
     Game(){
         score = 0;
@@ -28,7 +32,8 @@ class Game{
         items = new ArrayList<>();
         loadItems();
         itemChoices = new ArrayList<>();
-        startChoosing();
+        scoreHistory = new ArrayList<>();
+        showStartScreen();
     }
 
     void loadItems(){
@@ -58,11 +63,32 @@ class Game{
 
         currentItem = "";
         roundMessage = "";
+        resultPrediction = "";
+        startScreen = false;
         choosingItem = true;
         drawingRound = false;
         showingResult = false;
         gameOver = false;
         newItems();
+    }
+
+    void showStartScreen(){
+        currentItem = "";
+        roundMessage = "";
+        resultPrediction = "";
+        startScreen = true;
+        choosingItem = false;
+        drawingRound = false;
+        showingResult = false;
+        gameOver = false;
+    }
+
+    void startGame(){
+        score = 0;
+        lastRoundScore = 0;
+        roundNumber = 0;
+        scoreHistory.clear();
+        startChoosing();
     }
 
     ArrayList<String> newItems(){
@@ -92,16 +118,22 @@ class Game{
     void correctGuess(String prediction){
         lastRoundScore = roundLengthSeconds - elapsedSeconds();
         score += lastRoundScore;
+        resultPrediction = prediction;
+        roundSucceeded = true;
         roundMessage = "Correct! I guessed " + prediction + ". +" + lastRoundScore;
+        scoreHistory.add(new RoundResult(roundNumber, currentItem, prediction, true, lastRoundScore, score));
         drawingRound = false;
         showingResult = true;
         resultStartMillis = millis();
     }
 
-    void timeUp(){
+    void timeUp(String prediction){
         lastRoundScore = -timeUpPenalty;
         score = Math.max(0,score + lastRoundScore);
-        roundMessage = "Time's up! 10 Point Deduction";
+        resultPrediction = prediction;
+        roundSucceeded = false;
+        roundMessage = "Time's up! -" + timeUpPenalty;
+        scoreHistory.add(new RoundResult(roundNumber, currentItem, prediction, false, lastRoundScore, score));
         drawingRound = false;
         showingResult = true;
         resultStartMillis = millis();
@@ -127,6 +159,7 @@ class Game{
     void finishGame(){
         currentItem = "";
         roundMessage = "Final score: " + score;
+        startScreen = false;
         choosingItem = false;
         drawingRound = false;
         showingResult = false;
@@ -134,24 +167,38 @@ class Game{
     }
 
     void resetGame(){
-        score = 0;
-        lastRoundScore = 0;
-        roundNumber = 0;
-        gameOver = false;
-        startChoosing();
+        startGame();
     }
 
-    void update(){
-        if(gameOver){
+    void update(String prediction){
+        if(startScreen || gameOver){
             return;
         }
 
         if(drawingRound && remainingSeconds() == 0){
-            timeUp();
+            timeUp(prediction);
         }
 
         if(showingResult && millis() - resultStartMillis >= resultLengthMillis){
             startChoosing();
         }
+    }
+}
+
+class RoundResult{
+    int roundNumber;
+    String item;
+    String prediction;
+    boolean guessed;
+    int points;
+    int scoreAfter;
+
+    RoundResult(int roundNumber, String item, String prediction, boolean guessed, int points, int scoreAfter){
+        this.roundNumber = roundNumber;
+        this.item = item;
+        this.prediction = prediction;
+        this.guessed = guessed;
+        this.points = points;
+        this.scoreAfter = scoreAfter;
     }
 }
