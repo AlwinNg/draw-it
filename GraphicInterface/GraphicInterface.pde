@@ -1,19 +1,20 @@
 import java.util.*;
 import java.io.*;
+import ai.onnxruntime.*;
 
 Canvas canvas;
 Pen pen;
 Game game;
 ArrayList<ItemButton> itemButtons;
-int displayedChoiceVersion = -1;
-String currentPrediction = "unknown";
-int infoX = 1020;
-
-import ai.onnxruntime.*;
-
+Button clearButton;
+Button eraserButton;
 OrtSession session;
 OrtEnvironment env;
 String[] labels;
+
+int displayedChoiceVersion = -1;
+String currentPrediction = "unknown";
+int infoX = 1020;
 
 void setup() {
   frameRate(60);
@@ -25,7 +26,7 @@ void setup() {
   game = new Game();
   itemButtons = new ArrayList<>();
   syncItemButtons();
-
+  clearButton = new Button(1020,275,150,50,0,"Clear",1095,300);
 }
 
 void draw() {
@@ -34,7 +35,6 @@ void draw() {
   syncItemButtons();
   updatePrediction();
   checkCorrectPrediction();
-  // drawLayout();
   canvas.display();
   if(!pen.isDrawing){
     pen.updatePosition(mouseX, mouseY);
@@ -43,7 +43,7 @@ void draw() {
     pen.drawCursor(g);
   }
   displayGameInfo();
-  displayItemChoices();
+  displayGameButtons();
 }
 
 void syncItemButtons(){
@@ -65,20 +65,6 @@ void createItemButtons(){
   for(int i = 0; i < game.itemChoices.size(); i++){
     itemButtons.add(new ItemButton(game.itemChoices.get(i), buttonX, buttonY + i * (buttonH + gap), buttonW, buttonH));
   }
-}
-
-void drawLayout(){
-  pushStyle();
-  noStroke();
-  fill(245);
-  rect(canvas.location.x - 8, canvas.location.y - 8, canvas.dimensions.x + 16, canvas.dimensions.y + 16, 8);
-  fill(22, 25, 31);
-  rect(790, 50, 350, 660, 8);
-  if(!game.choosingItem){
-    fill(51, 58, 70);
-    rect(815, 460, 300, 1);
-  }
-  popStyle();
 }
 
 void displayGameInfo(){
@@ -141,8 +127,11 @@ void displayGameInfo(){
   popStyle();
 }
 
-void displayItemChoices(){
+void displayGameButtons(){
   if(!game.choosingItem){
+    if(game.drawingRound){
+      clearButton.display();
+    }
     return;
   }
 
@@ -153,7 +142,6 @@ void displayItemChoices(){
 
 void mousePressed() {
   if(game.choosingItem){
-    // check button bounds before the timer starts
     for(ItemButton itemButton : itemButtons){
       if(itemButton.containsPoint(mouseX, mouseY)){
         itemButton.pressed();
@@ -164,7 +152,11 @@ void mousePressed() {
     }
   }
 
-  if(!game.drawingRound){
+  if(game.drawingRound){
+    if(clearButton.containsPoint(mouseX,mouseY)){
+      canvas.clear();
+    }
+  } else{
     return;
   }
 
@@ -186,7 +178,6 @@ void mouseDragged() {
     return;
   }
 
-  // draw on every drag event
   pen.updatePosition(mouseX, mouseY);
   canvas.edit(pen);
 }
